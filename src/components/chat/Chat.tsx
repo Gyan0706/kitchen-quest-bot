@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useToast } from "@/hooks/use-toast";
+import { useInventory } from "@/hooks/useInventory";
+import { parseInventoryItems, isAddToInventoryMessage } from "@/utils/inventoryParser";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import { ChatSidebar } from "./ChatSidebar";
@@ -29,12 +31,38 @@ export const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+  const { addMultipleItems, items } = useInventory();
 
   const activeConversation = conversations.find(c => c.id === activeConversationId);
 
   // Mock AI responses based on food management intents
-  const generateResponse = (userMessage: string): { content: string; intent: string } => {
+  const generateResponse = async (userMessage: string): Promise<{ content: string; intent: string }> => {
     const message = userMessage.toLowerCase();
+    
+    // Check if this is an add to inventory request
+    if (isAddToInventoryMessage(userMessage)) {
+      const extractedItems = parseInventoryItems(userMessage);
+      
+      if (extractedItems.length > 0) {
+        try {
+          await addMultipleItems(extractedItems);
+          return {
+            content: `Great! I've added ${extractedItems.join(', ')} to your inventory. You now have ${items.length + extractedItems.length} items stored. Would you like to see what recipes I can suggest with your current ingredients?`,
+            intent: "inventory_management"
+          };
+        } catch (error) {
+          return {
+            content: `I tried to add ${extractedItems.join(', ')} to your inventory, but encountered an error. Please try again or add items one at a time.`,
+            intent: "inventory_management"
+          };
+        }
+      } else {
+        return {
+          content: "I understand you want to add items to your inventory, but I couldn't identify specific food items in your message. Could you please specify which items you'd like to add? For example: 'add tomatoes, onions, and carrots to my inventory'",
+          intent: "inventory_management"
+        };
+      }
+    }
     
     // Recipe recommendations
     if (message.includes('recipe') || message.includes('cook') || message.includes('meal')) {
@@ -44,7 +72,7 @@ export const Chat = () => {
       };
     }
     
-    // Inventory management
+    // Inventory management (general)
     if (message.includes('inventory') || message.includes('ingredients') || message.includes('grocery')) {
       return {
         content: "Let me help you manage your inventory! I can track your ingredients, check expiration dates, and generate grocery lists. Would you like to add items to your inventory or check what's running low?",
@@ -142,7 +170,7 @@ export const Chat = () => {
       // Simulate AI processing delay
       await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
 
-      const { content: responseContent, intent } = generateResponse(content);
+      const { content: responseContent, intent } = await generateResponse(content);
       
       const assistantMessage: Message = {
         id: `msg_${Date.now() + 1}`,
