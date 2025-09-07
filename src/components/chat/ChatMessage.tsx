@@ -6,15 +6,15 @@ import { cn } from "@/lib/utils";
 interface ChatMessageProps {
   message: {
     id: string;
-    content: string;
-    role: 'user' | 'assistant';
-    timestamp: Date;
+    message: string;
+    sender: 'user' | 'assistant';
+    created_at: string;
     intent?: string;
   };
 }
 
 export const ChatMessage = ({ message }: ChatMessageProps) => {
-  const isUser = message.role === 'user';
+  const isUser = message.sender === 'user';
 
   return (
     <div className={cn(
@@ -37,7 +37,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
             {isUser ? 'You' : 'FoodBot'}
           </span>
           <span className="text-xs opacity-70">
-            {message.timestamp.toLocaleTimeString([], { 
+            {new Date(message.created_at).toLocaleTimeString([], { 
               hour: '2-digit', 
               minute: '2-digit' 
             })}
@@ -48,7 +48,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
             </Badge>
           )}
         </div>
-        <p className="text-sm leading-relaxed">{message.content}</p>
+        <p className="text-sm leading-relaxed">{message.message}</p>
       </div>
 
       {isUser && (

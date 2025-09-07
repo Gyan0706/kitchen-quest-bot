@@ -7,9 +7,10 @@ import { ChatSidebar } from "./ChatSidebar";
 
 interface Message {
   id: string;
-  content: string;
-  role: 'user' | 'assistant';
-  timestamp: Date;
+  message: string;
+  sender: 'user' | 'assistant';
+  created_at: string;
+  user_id?: string;
   intent?: string;
 }
 
@@ -17,7 +18,7 @@ interface Conversation {
   id: string;
   title: string;
   lastMessage: string;
-  timestamp: Date;
+  timestamp: string;
   messageCount: number;
   messages: Message[];
 }
@@ -93,7 +94,7 @@ export const Chat = () => {
       id,
       title: "New Conversation",
       lastMessage: "",
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       messageCount: 0,
       messages: []
     };
@@ -117,9 +118,9 @@ export const Chat = () => {
 
     const userMessage: Message = {
       id: `msg_${Date.now()}`,
-      content,
-      role: 'user',
-      timestamp: new Date()
+      message: content,
+      sender: 'user',
+      created_at: new Date().toISOString()
     };
 
     // Add user message immediately
@@ -145,9 +146,9 @@ export const Chat = () => {
       
       const assistantMessage: Message = {
         id: `msg_${Date.now() + 1}`,
-        content: responseContent,
-        role: 'assistant',
-        timestamp: new Date(),
+        message: responseContent,
+        sender: 'assistant',
+        created_at: new Date().toISOString(),
         intent
       };
 
@@ -158,7 +159,7 @@ export const Chat = () => {
               messages: [...conv.messages, assistantMessage],
               lastMessage: responseContent,
               messageCount: conv.messageCount + 1,
-              timestamp: new Date()
+              timestamp: new Date().toISOString()
             }
           : conv
       ));

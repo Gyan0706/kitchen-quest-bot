@@ -8,7 +8,7 @@ interface Conversation {
   id: string;
   title: string;
   lastMessage: string;
-  timestamp: Date;
+  timestamp: string;
   messageCount: number;
 }
 
@@ -82,7 +82,7 @@ export const ChatSidebar = ({
                 </p>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Clock className="h-3 w-3" />
-                  {conversation.timestamp.toLocaleDateString()}
+                  {new Date(conversation.timestamp).toLocaleDateString()}
                 </div>
               </Button>
             ))
