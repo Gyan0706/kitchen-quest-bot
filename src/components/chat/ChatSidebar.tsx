@@ -8,7 +8,7 @@ interface Conversation {
   id: string;
   title: string;
   lastMessage: string;
-  timestamp: string;
+  timestamp: string | number;
   messageCount: number;
 }
 
